@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FBF8F5">
+<meta name="description" content="歩行リハビリのデイリークエスト">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="リハクエスト">
+<title>リハビリ デイリークエスト</title>
+<style>
+:root{
+  --ink:#2C2C2B; --sub:#7D7A75; --bg:#FBF8F5; --card:#FFFFFF; --line:#EEEAE5;
+  --blue:#2783DE; --blue-s:#E5F2FC; --green:#46A171; --green-s:#E8F1EC;
+  --orange:#D5803B; --orange-s:#FBEBDE; --red:#E56458; --red-s:#FCE9E7;
+  --pink:#E17AA0; --pink-s:#FCEEF3; --purple:#8E6CC9; --purple-s:#F1ECFA;
+  --accent:var(--blue); --accent-s:var(--blue-s);
+  --r:18px; --shadow:0 1px 2px rgba(60,40,20,.04),0 6px 18px rgba(60,40,20,.05);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:10px}
+.wrap{max-width:560px;margin:0 auto;padding:20px 16px 112px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.hello small{display:block;color:var(--sub);font-size:13px}
+.hello h1{margin:0;font-size:22px;letter-spacing:.02em}
+.streak{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:14px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap}
+
+/* hero */
+.hero{position:relative;background:var(--accent-s);border-radius:24px;padding:20px;display:flex;gap:16px;align-items:center;margin-bottom:16px;overflow:hidden;transition:background .3s}
+.hero::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.45)}
+.ring{position:relative;flex:0 0 96px;height:96px}
+.ring svg{transform:rotate(-90deg)}
+.ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:22px}
+.ring .pct small{font-size:11px;font-weight:600;color:var(--sub)}
+.hero-txt{position:relative;z-index:1;min-width:0}
+.tag{display:inline-block;font-size:12px;font-weight:700;color:var(--accent);background:#fff;border-radius:999px;padding:2px 10px;margin-bottom:6px}
+.hero-txt h2{margin:0 0 4px;font-size:17px;line-height:1.45}
+.hero-txt p{margin:0;font-size:13px;color:var(--sub)}
+
+/* day type chips */
+.label{font-size:13px;font-weight:700;color:var(--sub);margin:20px 4px 8px}
+.types{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.type{border:2px solid transparent;background:var(--card);border-radius:16px;padding:10px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;box-shadow:var(--shadow);min-height:72px;transition:transform .15s,border-color .2s}
+.type:active{transform:scale(.95)}
+.type .e{font-size:24px;line-height:1.2}
+.type span{font-size:11px;font-weight:700;line-height:1.3;text-align:center}
+.type[aria-pressed="true"]{border-color:var(--c);background:var(--cs)}
+.suggest{font-size:12px;color:var(--sub);margin:8px 4px 0}
+.suggest b{color:var(--ink)}
+
+/* rules */
+details.rules{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);margin-top:16px;overflow:hidden}
+details.rules summary{list-style:none;padding:14px 16px;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;min-height:48px}
+details.rules summary::-webkit-details-marker{display:none}
+details.rules summary .chev{margin-left:auto;display:flex;transition:transform .2s;color:var(--sub)}
+details.rules[open] summary .chev{transform:rotate(180deg)}
+.rules ul{margin:0;padding:0 16px 16px 36px;font-size:14px}
+.rules li{margin:6px 0}
+.rules li.warn::marker{content:"⚠️ "}
+
+/* quests */
+.sec{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:8px;margin-top:12px}
+.sec h3{margin:0;padding:10px 10px 6px;font-size:14px;display:flex;align-items:center;gap:8px}
+.sec h3 .cnt{margin-left:auto;font-size:12px;color:var(--sub);font-weight:600}
+.note{font-size:12px;color:var(--orange);background:var(--orange-s);border-radius:10px;padding:8px 10px;margin:4px 6px 6px}
+.q{width:100%;display:flex;align-items:flex-start;gap:12px;text-align:left;background:none;border:0;border-radius:14px;padding:12px 10px;min-height:52px;transition:background .15s}
+.q:hover{background:#FAF8F6}
+.q:active{background:var(--accent-s)}
+.box{flex:0 0 26px;height:26px;border-radius:9px;border:2px solid #D9D4CE;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;background:#fff}
+.box svg{width:15px;height:15px;opacity:0;transform:scale(.4);transition:all .2s}
+.q[aria-checked="true"] .box{background:var(--accent);border-color:var(--accent)}
+.q[aria-checked="true"] .box svg{opacity:1;transform:scale(1)}
+.q[aria-checked="true"] .qt{color:var(--sub);text-decoration:line-through;text-decoration-color:rgba(0,0,0,.18)}
+.qt{font-size:15px;flex:1}
+.qt small{display:block;font-size:12px;color:var(--sub);margin-top:2px;text-decoration:none}
+.bonus{display:inline-block;font-size:11px;font-weight:700;color:var(--pink);background:var(--pink-s);border-radius:999px;padding:1px 8px;margin-left:6px;vertical-align:1px}
+
+/* forms */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-top:12px}
+.card h3{margin:0 0 12px;font-size:15px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f label{display:block;font-size:12px;font-weight:700;color:var(--sub);margin-bottom:4px}
+.f input,.f textarea{width:100%;border:1.5px solid var(--line);background:#FDFCFB;border-radius:12px;padding:10px 12px;min-height:44px;outline:none;transition:border-color .2s}
+.f input:focus,.f textarea:focus{border-color:var(--accent);background:#fff}
+.f textarea{min-height:84px;resize:vertical}
+.seg{display:flex;background:#F3F0EC;border-radius:12px;padding:3px;gap:3px}
+.seg button{flex:1;border:0;background:none;border-radius:10px;min-height:40px;font-size:14px;font-weight:700;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.full{grid-column:1/-1}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:14px;min-height:50px;background:var(--accent);color:#fff;font-weight:800;font-size:16px;margin-top:16px;box-shadow:0 4px 12px rgba(39,131,222,.25);transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);box-shadow:none;font-weight:700}
+.saved{text-align:center;font-size:13px;color:var(--green);height:20px;margin-top:8px}
+
+/* history */
+.h-item{display:flex;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
+.h-item:last-child{border-bottom:0}
+.h-emoji{flex:0 0 44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.h-main{flex:1;min-width:0}
+.h-main b{font-size:14px}
+.h-main div{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.h-pct{font-weight:800;font-size:14px}
+.empty{text-align:center;color:var(--sub);padding:32px 8px;font-size:14px}
+.empty .big{font-size:40px;display:block;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:12px;text-align:center}
+.stat b{display:block;font-size:22px}
+.stat span{font-size:11px;color:var(--sub);font-weight:700}
+.bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:8px}
+.bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bar i{display:block;width:100%;max-width:28px;border-radius:8px 8px 4px 4px;background:var(--blue-s)}
+.bar i.on{background:var(--blue)}
+.bar span{font-size:11px;color:var(--sub)}
+
+/* week */
+.wk{display:flex;align-items:center;gap:12px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.wk:last-child{border-bottom:0}
+.wk .d{flex:0 0 36px;height:36px;border-radius:12px;background:#F3F0EC;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+.wk .d.today{background:var(--accent);color:#fff}
+.wk select{flex:1;min-width:0;width:100%;text-overflow:ellipsis;border:1.5px solid var(--line);border-radius:12px;min-height:44px;padding:0 10px;background:#FDFCFB}
+
+/* nav */
+nav{position:fixed;left:0;right:0;bottom:0;padding:8px 12px calc(8px + env(safe-area-inset-bottom));background:rgba(251,248,245,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);z-index:10}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+nav button{border:0;background:none;border-radius:14px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:700;color:var(--sub)}
+nav button .ni{font-size:20px;line-height:1;filter:grayscale(1);opacity:.6;transition:all .2s}
+nav button[aria-current="page"]{color:var(--ink);background:#fff;box-shadow:var(--shadow)}
+nav button[aria-current="page"] .ni{filter:none;opacity:1;transform:translateY(-1px)}
+.view{display:none;animation:fade .25s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* celebrate */
+.toast{position:fixed;left:50%;top:24px;transform:translate(-50%,-220%);visibility:hidden;background:#fff;border-radius:999px;padding:10px 18px;font-weight:800;box-shadow:0 8px 24px rgba(0,0,0,.12);transition:transform .35s cubic-bezier(.2,1.4,.4,1);z-index:30;white-space:nowrap}
+.toast.show{transform:translate(-50%,0);visibility:visible}
+.confetti{position:fixed;pointer-events:none;font-size:22px;z-index:25;animation:pop 1.3s ease-out forwards}
+@keyframes pop{0%{opacity:1;transform:translate(0,0) scale(.6) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.1) rotate(var(--rot))}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:380px){.type span{font-size:10px}.types{gap:6px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="hello"><small id="dateLbl"></small><h1 id="greet">今日のクエスト</h1></div>
+    <div class="streak" title="連続達成日数">🔥 <span id="streak">0</span>日</div>
+  </header>
+
+  <!-- TODAY -->
+  <section class="view on" id="v-today" aria-label="今日">
+    <div class="hero" id="hero">
+      <div class="ring" aria-hidden="true">
+        <svg width="96" height="96" viewBox="0 0 96 96"><circle cx="48" cy="48" r="40" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="10"/><circle id="ringFg" cx="48" cy="48" r="40" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition:stroke-dashoffset .5s ease"/></svg>
+        <div class="pct"><span id="pct">0%</span><small id="frac">0/0</small></div>
+      </div>
+      <div class="hero-txt">
+        <span class="tag" id="heroTag">メインクエスト</span>
+        <h2 id="heroMain"></h2>
+        <p id="heroSub"></p>
+      </div>
+    </div>
+
+    <div class="label">今日の日タイプ</div>
+    <div class="types" id="types" role="group" aria-label="日タイプ"></div>
+    <p class="suggest" id="suggest"></p>
+
+    <details class="rules">
+      <summary>🛡️ 共通ルール <span class="chev" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></summary>
+      <ul>
+        <li class="warn"><b>勢いのある歩行（蹴る歩き）は見守り・歩行ベルトがあるときだけ</b></li>
+        <li class="warn">ひとりのときは座って、またはしっかりつかまった姿勢でできるメニューだけ</li>
+        <li class="warn">痛み・強い疲れ・ふらつきがあれば、🛌 省エネ日に切り替える</li>
+        <li>歩幅は<b>小さめ</b>。速さではなく<b>テンポを合わせる</b></li>
+        <li>合言葉：<b>「蹴る → 乗せる」「体を起こす（くの字にしない）」</b></li>
+      </ul>
+    </details>
+
+    <div id="quests"></div>
+  </section>
+
+  <!-- RECORD -->
+  <section class="view" id="v-rec" aria-label="記録">
+    <div class="card">
+      <h3>📏 10m歩行</h3>
+      <div class="grid2">
+        <div class="f"><label for="r-time">タイム（秒）</label><input id="r-time" inputmode="decimal" placeholder="例：37"></div>
+        <div class="f"><label for="r-steps">歩数</label><input id="r-steps" inputmode="numeric" placeholder="例：24"></div>
+        <div class="f full"><label>介助</label>
+          <div class="seg" id="r-assist" role="group" aria-label="介助">
+            <button type="button" data-v="なし" aria-pressed="false">なし</button>
+            <button type="button" data-v="軽く" aria-pressed="false">軽く</button>
+            <button type="button" data-v="あり" aria-pressed="false">あり</button>
+          </div>
+        </div>
+        <div class="f full"><label for="r-rise">体が起きた歩数</label><input id="r-rise" inputmode="numeric" placeholder="例：6歩目"></div>
+      </div>
+    </div>
+    <div class="card" id="facCard">
+      <h3 id="facTitle">🏥 施設の数字</h3>
+      <div class="grid2" id="facFields"></div>
+    </div>
+    <div class="card">
+      <h3>💭 感覚メモ・振り返り</h3>
+      <div class="f"><label for="r-memo">よかったこと／崩れたこと／次の一手</label><textarea id="r-memo" placeholder="例：右のお尻に力が入る気配あり。6歩目で体が起きた。"></textarea></div>
+    </div>
+    <button class="btn" id="saveRec">記録を保存する</button>
+    <div class="saved" id="savedMsg" aria-live="polite"></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="v-hist" aria-label="履歴">
+    <div class="stats">
+      <div class="stat"><b id="s-days">0</b><span>記録した日</span></div>
+      <div class="stat"><b id="s-clear">0</b><span>クリアした日</span></div>
+      <div class="stat"><b id="s-best">–</b><span>10mベスト</span></div>
+    </div>
+    <div class="card">
+      <h3>📊 直近7日の達成率</h3>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="card">
+      <h3>🗓️ これまでの記録</h3>
+      <div id="histList"></div>
+    </div>
+    <button class="btn ghost" id="exportBtn">記録をCSVでコピー</button>
+    <div class="saved" id="expMsg" aria-live="polite"></div>
+  </section>
+
+  <!-- WEEK -->
+  <section class="view" id="v-week" aria-label="週プラン">
+    <div class="card">
+      <h3>🗓️ いつもの1週間</h3>
+      <p style="margin:-6px 0 8px;font-size:13px;color:var(--sub)">曜日ごとの日タイプを決めておくと、毎朝自動で選ばれます。当日タップで変更もOK。</p>
+      <div id="weekList"></div>
+    </div>
+    <div class="card" style="background:var(--green-s);box-shadow:none">
+      <h3>💡 組み立てのコツ</h3>
+      <p style="margin:0;font-size:14px">外来の翌日に🏠フル在宅の日を置くと、リハで得た感覚を家で復習しやすい。</p>
+    </div>
+    <div class="card" style="background:#F3F0EC;box-shadow:none">
+      <p style="margin:0;font-size:12px;color:var(--sub)">🤖 セッション記録をもとにAIが作った叩き台です。強度・回数・ひとりでやってよい範囲は担当PTと相談して調整してください。記録はこの端末のブラウザ内に保存されます。</p>
+    </div>
+  </section>
+</div>
+
+<nav aria-label="メニュー"><div class="in">
+  <button data-v="today" aria-current="page"><span class="ni">🗡️</span>今日</button>
+  <button data-v="rec"><span class="ni">✏️</span>記録</button>
+  <button data-v="hist"><span class="ni">📊</span>履歴</button>
+  <button data-v="week"><span class="ni">🗓️</span>週プラン</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const TYPES={
+ keio:{e:"🏥",name:"慶応の日",short:"慶応",sub:"ロフスト",c:"#2783DE",cs:"#E5F2FC",
+  main:"前に出した足に腰ごと乗せる",hint:"課題② 重心・体幹。合言葉は「蹴る → 乗せる」",
+  fac:[["推進力","例：32"],["全体ポイント","例：28"],["リズム","例：20"],["バランス","例：20"]],
+  secs:[
+   {t:"🎒 行く前",items:[["今日の目的を1行で書いてPTに伝える","例：乗せる瞬間に体幹が後ろに残らないか見てほしい"],["前回の記録を見返す"]]},
+   {t:"🏃 リハ中",items:[["「蹴る → 乗せる」を意識して歩く"],["小股でテンポを合わせる"],["体を起こして股関節で支える"],["横から動画を撮ってもらう","乗せる瞬間を確認する"],["計測の数字をメモする","タイム・推進力・全体ポイント・リズム・バランス"]]},
+   {t:"🏠 帰宅後（軽めに）",items:[["動画を見て、自分の感覚とのズレを1行メモ"],["ストレッチ・体のケア"],["振り返り3行","よかったこと／崩れたこと／次の一手"]]}]},
+ hal:{e:"🤖",name:"原宿の日",short:"原宿",sub:"HAL",c:"#8E6CC9",cs:"#F1ECFA",
+  main:"右膝の曲げ伸ばしの経験値を積む",hint:"課題① 膝の伸展・屈曲。乗せる練習はロフストの日に任せる",
+  fac:[["アシスト値","例：30"],["速度","例：1.6"],["歩いた時間（分）","例：15"],["靴のサイズ","例：23cm"]],
+  secs:[
+   {t:"🎒 行く前",items:[["今日の目的を1行で書く","例：右膝で力を抜いて曲げ、かかとからつく"]]},
+   {t:"🦿 リハ中",items:[["ボールを蹴る要領で、力を抜いて曲げ、かかとからつく"],["サポート担当に「歩幅小さめで」と伝える"],["速度はテンポが合う範囲で","目安1.3〜1.6、余裕があれば試す"],["アシスト値・速度・時間・靴のサイズをメモ"]]},
+   {t:"🏠 帰宅後（軽めに）",items:[["右膝・右のお尻の感覚の変化を1行メモ"],["ストレッチ・体のケア"],["振り返り3行"]]}]},
+ home:{e:"🏠",name:"フル在宅の日",short:"在宅",sub:"パートナーあり",c:"#46A171",cs:"#E8F1EC",
+  main:"ロフスト歩行で「蹴る → 乗せる」",hint:"午後はパートナーの見守り・歩行ベルトありで",
+  secs:[
+   {t:"☀️ 午前：準備（ひとりでもOK）",items:[["座ったまま体を起こす練習","くの字にしない姿勢を1〜2分×数回"],["座ったまま、蹴るイメージで膝の曲げ伸ばし","左右とも"],["お尻（特に右）に力を入れる練習","「気配」を感じたら成功"]]},
+   {t:"🌤️ 午後：メイン",note:"パートナーの見守り・歩行ベルトありで",items:[["つかまり立ちで、股関節を伸ばして体を起こして立つ"],["ロフスト歩行10m × 3〜5本","「蹴る → 乗せる」、小股で"],["1本目は計測する","タイム・歩数・介助・何歩目で体が起きたか"],["ブレーキ練習","合図で止まる／ゆっくり歩く"],["もも・膝サポートあり1本／なし1本で比べる"],["横から動画を1本撮る"]]},
+   {t:"🌙 夜：振り返り",items:[["動画チェック、記録タブを埋める"]]},
+   {t:"🎁 ボーナス",bonus:true,items:[["見守りありで立ち上がり練習","課題③、少しだけ"],["生活の中で「ちょっと立つ・物を取る」","見守りありで"]]}]},
+ night:{e:"🌙",name:"夜だけの日",short:"夜だけ",sub:"日中ひとり",c:"#D5803B",cs:"#FBEBDE",
+  main:"日中は体幹と股関節 → 夜に短く歩く",hint:"日中は座って、またはつかまってできるものだけ",
+  secs:[
+   {t:"🪑 日中：ソロクエスト",note:"歩く練習・勢いのある動きは日中ひとりではやらない",items:[["座ったまま体を起こす練習","1〜2分×数回、仕事の合間に"],["座ったまま、蹴るイメージで膝の曲げ伸ばし","左右10回×2〜3セット"],["お尻に力を入れる練習","寝た姿勢・座った姿勢で"],["前回の歩行動画でイメトレ"]]},
+   {t:"🌙 夜：短期集中（20〜30分）",note:"見守り・歩行ベルトありで",items:[["つかまり立ちで体を起こして立つ","ウォームアップ"],["ロフスト歩行10m × 2〜3本","1本目は計測"],["疲れていたらサポートありで「いい感覚」を1本"],["記録タブを埋める"]]}]},
+ rest:{e:"🛌",name:"省エネ日",short:"省エネ",sub:"休む日",c:"#E17AA0",cs:"#FCEEF3",
+  main:"3つだけできたらクリア",hint:"休むのも練習のうち",
+  secs:[{t:"🍵 ゆるクエスト",items:[["座ったまま体を起こす練習を1回"],["座ったまま、蹴るイメージで膝の曲げ伸ばしを1セット"],["体の感覚を1行メモ"]]}]}
+};
+const ORDER=["keio","hal","home","night","rest"];
+const WD=["日","月","火","水","木","金","土"];
+const KEY="rehabQuest.v1";
+const DEF_WEEK={0:"rest",1:"night",2:"keio",3:"home",4:"night",5:"hal",6:"home"};
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
+S.days=S.days||{};S.week=S.week||{...DEF_WEEK};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const ymd=d=>{const z=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate())};
+const now=new Date(),TODAY=ymd(now);
+function day(k=TODAY){if(!S.days[k])S.days[k]={type:S.week[new Date(k+"T12:00").getDay()]||"home",checks:{},rec:{}};return S.days[k]}
+const $=s=>document.querySelector(s);
+const CHECK='<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3L13 4.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function progress(d){const T=TYPES[d.type];let tot=0,done=0;T.secs.forEach((s,si)=>{if(s.bonus)return;s.items.forEach((_,ii)=>{tot++;if(d.checks[d.type+"-"+si+"-"+ii])done++})});return{tot,done,p:tot?Math.round(done/tot*100):0}}
+
+function setTheme(T){document.documentElement.style.setProperty("--accent",T.c);document.documentElement.style.setProperty("--accent-s",T.cs)}
+
+function renderToday(){
+ const d=day(),T=TYPES[d.type];setTheme(T);
+ $("#types").innerHTML=ORDER.map(k=>{const t=TYPES[k];return `<button class="type" style="--c:${t.c};--cs:${t.cs}" data-k="${k}" aria-pressed="${k===d.type}"><span class="e">${t.e}</span><span>${t.short}</span></button>`}).join("");
+ const plan=TYPES[S.week[now.getDay()]];
+ $("#suggest").innerHTML=plan?`週プランでは今日（${WD[now.getDay()]}）は <b>${plan.e} ${plan.name}</b>`:"";
+ $("#heroTag").textContent=`${T.e} ${T.name}・メインクエスト`;
+ $("#heroMain").textContent=T.main;$("#heroSub").textContent=T.hint;
+ $("#quests").innerHTML=T.secs.map((s,si)=>{
+  const n=s.items.length,c=s.items.filter((_,ii)=>d.checks[d.type+"-"+si+"-"+ii]).length;
+  return `<div class="sec"><h3>${s.t}<span class="cnt">${c}/${n}</span></h3>${s.note?`<div class="note">⚠️ ${s.note}</div>`:""}${s.items.map((it,ii)=>{const id=d.type+"-"+si+"-"+ii;return `<button class="q" role="checkbox" aria-checked="${!!d.checks[id]}" data-id="${id}"><span class="box">${CHECK}</span><span class="qt">${esc(it[0])}${s.bonus?'<span class="bonus">おまけ</span>':""}${it[1]?`<small>${esc(it[1])}</small>`:""}</span></button>`}).join("")}</div>`}).join("");
+ renderProgress();
+}
+function renderProgress(){const d=day(),{tot,done,p}=progress(d);$("#pct").textContent=p+"%";$("#frac").textContent=done+"/"+tot;$("#ringFg").style.strokeDashoffset=251.3*(1-p/100);$("#streak").textContent=streak();
+ const h=now.getHours();$("#greet").textContent=p>=100?"今日はクリア！🎉":h<11?"おはよう、今日もいこう":h<18?"今日のクエスト":"おつかれさま"}
+function streak(){let n=0,d=new Date(now);if(progress(day(TODAY)).p<100)d.setDate(d.getDate()-1);while(true){const k=ymd(d),x=S.days[k];if(x&&progress(x).p>=100){n++;d.setDate(d.getDate()-1)}else break}return n}
+
+$("#types").addEventListener("click",e=>{const b=e.target.closest(".type");if(!b)return;day().type=b.dataset.k;save();renderToday();renderFac()});
+$("#quests").addEventListener("click",e=>{const b=e.target.closest(".q");if(!b)return;const d=day(),id=b.dataset.id,before=progress(d).p;d.checks[id]=!d.checks[id];if(!d.checks[id])delete d.checks[id];save();
+ b.setAttribute("aria-checked",!!d.checks[id]);const sec=b.closest(".sec"),all=sec.querySelectorAll(".q").length,on=sec.querySelectorAll('.q[aria-checked="true"]').length;sec.querySelector(".cnt").textContent=on+"/"+all;renderProgress();
+ if(d.checks[id]){burst(b,3);const p=progress(d).p;if(p>=100&&before<100){toast("🎉 今日のクエスト、クリア！");burst(document.querySelector(".ring"),18)}}});
+
+function burst(el,n){if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const r=el.getBoundingClientRect(),E=["✨","🌸","⭐","💖","🎉","🍀"];for(let i=0;i<n;i++){const s=document.createElement("span");s.className="confetti";s.textContent=E[Math.floor(Math.random()*E.length)];s.style.left=(r.left+(n>3?r.width/2:28))+"px";s.style.top=(r.top+r.height/2-10)+"px";const a=Math.random()*Math.PI*2,dist=n>3?80+Math.random()*90:30+Math.random()*30;s.style.setProperty("--dx",Math.cos(a)*dist+"px");s.style.setProperty("--dy",Math.sin(a)*dist-30+"px");s.style.setProperty("--rot",(Math.random()*120-60)+"deg");document.body.appendChild(s);setTimeout(()=>s.remove(),1400)}}
+let tt;function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("show"),2200)}
+
+/* record */
+function renderFac(){const d=day(),T=TYPES[d.type];if(!T.fac){$("#facCard").style.display="none";return}$("#facCard").style.display="";$("#facTitle").textContent=`${T.e} ${T.name}の数字`;$("#facFields").innerHTML=T.fac.map(([l,ph],i)=>`<div class="f"><label for="fac${i}">${l}</label><input id="fac${i}" data-l="${l}" inputmode="decimal" placeholder="${ph}" value="${esc((d.rec.fac||{})[l])}"></div>`).join("")}
+function renderRec(){const r=day().rec;$("#r-time").value=r.time||"";$("#r-steps").value=r.steps||"";$("#r-rise").value=r.rise||"";$("#r-memo").value=r.memo||"";document.querySelectorAll("#r-assist button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===r.assist));renderFac();$("#savedMsg").textContent=""}
+$("#r-assist").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#r-assist button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+$("#saveRec").addEventListener("click",()=>{const d=day(),a=document.querySelector('#r-assist [aria-pressed="true"]');const fac={};document.querySelectorAll("#facFields input").forEach(i=>{if(i.value)fac[i.dataset.l]=i.value});d.rec={...d.rec,time:$("#r-time").value.trim(),steps:$("#r-steps").value.trim(),rise:$("#r-rise").value.trim(),memo:$("#r-memo").value.trim(),assist:a?a.dataset.v:"",fac:{...(d.rec.fac||{}),...fac}};save();$("#savedMsg").textContent="✓ 保存しました";toast("📝 記録を保存しました")});
+
+/* history */
+function renderHist(){const ks=Object.keys(S.days).filter(k=>{const x=S.days[k];return Object.keys(x.checks).length||Object.values(x.rec).some(v=>v&&(typeof v!=="object"||Object.keys(v).length))}).sort().reverse();
+ $("#s-days").textContent=ks.length;$("#s-clear").textContent=ks.filter(k=>progress(S.days[k]).p>=100).length;
+ const times=ks.map(k=>parseFloat(S.days[k].rec.time)).filter(n=>!isNaN(n));$("#s-best").textContent=times.length?Math.min(...times)+"秒":"–";
+ let bars="";for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-i);const x=S.days[ymd(d)],p=x?progress(x).p:0;bars+=`<div class="bar"><i class="${p>=100?"on":""}" style="height:${Math.max(6,p*.7)}px" title="${p}%"></i><span>${WD[d.getDay()]}</span></div>`}$("#bars").innerHTML=bars;
+ $("#histList").innerHTML=ks.length?ks.map(k=>{const x=S.days[k],T=TYPES[x.type],p=progress(x).p,r=x.rec,dt=new Date(k+"T12:00");const meta=[r.time&&`10m ${r.time}秒`,r.steps&&`${r.steps}歩`,r.assist&&`介助${r.assist}`,r.memo].filter(Boolean).join("・")||T.main;return `<div class="h-item"><div class="h-emoji" style="background:${T.cs}">${T.e}</div><div class="h-main"><b>${dt.getMonth()+1}/${dt.getDate()}（${WD[dt.getDay()]}） ${T.name}</b><div>${esc(meta)}</div></div><div class="h-pct" style="color:${p>=100?"var(--green)":"var(--sub)"}">${p>=100?"🏅":p+"%"}</div></div>`}).join(""):`<div class="empty"><span class="big">🌱</span>まだ記録がありません。<br>今日のクエストから始めよう！</div>`}
+$("#exportBtn").addEventListener("click",async()=>{const rows=[["日付","日タイプ","達成率","10mタイム","歩数","介助","体が起きた歩数","施設の数字","感覚メモ"]];Object.keys(S.days).sort().forEach(k=>{const x=S.days[k],r=x.rec;rows.push([k,TYPES[x.type].name,progress(x).p+"%",r.time||"",r.steps||"",r.assist||"",r.rise||"",Object.entries(r.fac||{}).map(([a,b])=>a+":"+b).join(" / "),(r.memo||"").replace(/\n/g," ")])});const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");try{await navigator.clipboard.writeText(csv);$("#expMsg").textContent="✓ クリップボードにコピーしました"}catch(e){$("#expMsg").textContent="コピーできませんでした"}});
+
+/* week */
+function renderWeek(){$("#weekList").innerHTML=[1,2,3,4,5,6,0].map(w=>`<div class="wk"><div class="d ${w===now.getDay()?"today":""}">${WD[w]}</div><select data-w="${w}" aria-label="${WD[w]}曜日の日タイプ">${ORDER.map(k=>`<option value="${k}" ${S.week[w]===k?"selected":""}>${TYPES[k].e} ${TYPES[k].name}（${TYPES[k].sub}）</option>`).join("")}</select></div>`).join("")}
+$("#weekList").addEventListener("change",e=>{const s=e.target.closest("select");if(!s)return;S.week[s.dataset.w]=s.value;const d=day();if(+s.dataset.w===now.getDay()&&!Object.keys(d.checks).length)d.type=s.value;save();toast("🗓️ 週プランを更新しました")});
+
+/* nav */
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;go(b.dataset.v)});
+function go(v){document.querySelectorAll("nav button").forEach(x=>x.toggleAttribute("aria-current",x.dataset.v===v)||x.dataset.v===v&&x.setAttribute("aria-current","page"));document.querySelectorAll("nav button").forEach(x=>{if(x.dataset.v===v)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current")});document.querySelectorAll(".view").forEach(x=>x.classList.toggle("on",x.id==="v-"+v));if(v==="today")renderToday();if(v==="rec")renderRec();if(v==="hist")renderHist();if(v==="week")renderWeek();window.scrollTo({top:0})}
+
+$("#dateLbl").textContent=`${now.getMonth()+1}月${now.getDate()}日（${WD[now.getDay()]}）`;
+day();save();renderToday();
+const hv=location.hash.slice(1);if(["rec","hist","week"].includes(hv))go(hv);
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
