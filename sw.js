@@ -1,5 +1,5 @@
 // 更新したら VERSION の数字を上げると、スマホ側も新しい版に切り替わります
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'rehab-quest-' + VERSION;
 const FILES = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
